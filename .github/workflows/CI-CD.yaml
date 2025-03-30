@@ -1,0 +1,126 @@
+# GitHub Actions workflow
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/contexts-and-expression-syntax-for-github-actions
+# https://www.npmjs.com/package/@amanda-mitchell/semantic-release-npm-multiple
+
+name: CI-CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  node_tests:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        node:
+          - 20
+          - lts/*
+          - current
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run linter
+        run: yarn lint
+
+      - name: Run Node tests
+        run: yarn test:node
+
+      - name: Send code coverage results to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+
+  browser_tests:
+    name: Browser Tests
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu-latest # Chrome, Firefox
+          - windows-latest # Internet Explorer
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: yarn test:browser
+
+      - name: Send code coverage results to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - node_tests
+      - browser_tests
+    steps:
+      - name: Let Coveralls know that all tests have finished
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
+
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - node_tests
+      - browser_tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Prepare Unscoped Package
+        run: yarn build
+
+      - name: Publish to NPM
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
