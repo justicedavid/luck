@@ -5,17 +5,17 @@ import convertPathToPosix from "../../../lib/util/convert-path-to-posix";
 import { cwd } from "../../../lib/util/url.js";
 describe("Return the extension of a URL", () => {
   it("should return an empty string if there isn't any extension", async () => {
-    const extension = $url.getExtension("/file");
+    let extension = $url.getExtension("/file");
     expect(extension).to.equal("");
   });
 
   it("should return the extension in lowercase", async () => {
-    const extension = $url.getExtension("/file.YML");
+    let extension = $url.getExtension("/file.YML");
     expect(extension).to.equal(".yml");
   });
 
   it("should return the extension without the query", async () => {
-    const extension = $url.getExtension("/file.yml?foo=bar");
+    let extension = $url.getExtension("/file.yml?foo=bar");
     expect(extension).to.equal(".yml");
   });
 });
@@ -31,15 +31,15 @@ if (!process.env.BROWSER) {
     });
 
     it("should handle absolute paths", async () => {
-      const result = $url.fromFileSystemPath("Y:\\A\\Random\\Path\\file.json");
+      let result = $url.fromFileSystemPath("Y:\\A\\Random\\Path\\file.json");
       expect(result)
         .to.be.a("string")
         .and.toSatisfy((msg: string) => msg.startsWith("Y:/A/Random/Path"));
     });
 
     it("should handle relative paths", async () => {
-      const result = $url.fromFileSystemPath("Path\\file.json");
-      const pwd = convertPathToPosix(cwd());
+      let result = $url.fromFileSystemPath("Path\\file.json");
+      let pwd = convertPathToPosix(cwd());
       expect(result).to.be.a("string");
       expect(result).toSatisfy((msg: string) => msg.startsWith(pwd));
     });
@@ -57,14 +57,14 @@ describe("Handle Linux file paths", () => {
   });
 
   it("should handle absolute paths", async () => {
-    const result = $url.fromFileSystemPath("/a/random/Path/file.json");
+    let result = $url.fromFileSystemPath("/a/random/Path/file.json");
     expect(result)
       .to.be.a("string")
       .and.toSatisfy((msg: string) => msg.startsWith("/a/random/Path/file.json"));
   });
 
   it("should handle relative paths", async () => {
-    const result = $url.fromFileSystemPath("Path/file.json");
+    let result = $url.fromFileSystemPath("Path/file.json");
     expect(result)
       .to.be.a("string")
       .and.toSatisfy((msg: string) => msg.startsWith("Path/file.json"));
