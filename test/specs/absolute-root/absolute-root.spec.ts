@@ -9,15 +9,15 @@ import dereferencedSchema from "./dereferenced.js";
 import bundledSchema from "./bundled.js";
 
 import { expect } from "vitest";
-const url = { cwd: urlModule.cwd };
+let url = { cwd: urlModule.cwd };
 
 describe("When executed in the context of root directory", () => {
   // Store the OS root directory
-  const root = resolve("/");
+  let root = resolve("/");
 
   // Store references to the original methods
-  const originalProcessCwd = process.cwd;
-  const originalUrlCwd = url.cwd;
+  let originalProcessCwd = process.cwd;
+  let originalUrlCwd = url.cwd;
 
   /**
    * A mock `process.cwd()` implementation that always returns the root diretory
@@ -49,16 +49,16 @@ describe("When executed in the context of root directory", () => {
   });
 
   it("should parse successfully from an absolute path", async () => {
-    const parser = new $RefParser();
-    const schema = await parser.parse(path.abs("test/specs/absolute-root/absolute-root.yaml"));
+    let parser = new $RefParser();
+    let schema = await parser.parse(path.abs("test/specs/absolute-root/absolute-root.yaml"));
     expect(schema).to.equal(parser.schema);
     expect(schema).to.deep.equal(parsedSchema.schema);
     expect(parser.$refs.paths()).to.deep.equal([path.abs("test/specs/absolute-root/absolute-root.yaml")]);
   });
 
   it("should parse successfully from a url", async () => {
-    const parser = new $RefParser();
-    const schema = await parser.parse(path.url("test/specs/absolute-root/absolute-root.yaml"));
+    let parser = new $RefParser();
+    let schema = await parser.parse(path.url("test/specs/absolute-root/absolute-root.yaml"));
     expect(schema).to.equal(parser.schema);
     expect(schema).to.deep.equal(parsedSchema.schema);
     expect(parser.$refs.paths()).to.deep.equal([path.url("test/specs/absolute-root/absolute-root.yaml")]);
@@ -95,8 +95,8 @@ describe("When executed in the context of root directory", () => {
   );
 
   it("should dereference successfully", async () => {
-    const parser = new $RefParser();
-    const schema = await parser.dereference(path.abs("test/specs/absolute-root/absolute-root.yaml"));
+    let parser = new $RefParser();
+    let schema = await parser.dereference(path.abs("test/specs/absolute-root/absolute-root.yaml"));
     expect(schema).to.equal(parser.schema);
     expect(schema).to.deep.equal(dereferencedSchema);
     // Reference equality
@@ -117,8 +117,8 @@ describe("When executed in the context of root directory", () => {
   });
 
   it("should bundle successfully", async () => {
-    const parser = new $RefParser();
-    const schema = await parser.bundle(path.abs("test/specs/absolute-root/absolute-root.yaml"));
+    let parser = new $RefParser();
+    let schema = await parser.bundle(path.abs("test/specs/absolute-root/absolute-root.yaml"));
     expect(schema).to.equal(parser.schema);
     expect(schema).to.deep.equal(bundledSchema);
   });
